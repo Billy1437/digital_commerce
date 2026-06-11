@@ -6,3 +6,204 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  BUYER
+  ADMIN
+}
+
+enum ListingStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  HIDDEN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAYMENT_SUBMITTED
+  PAID
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum OrderItemType {
+  TOPUP
+  ACCOUNT
+}
+
+enum PaymentMethod {
+  KBZPAY
+  WAVE_MONEY
+  PROMPTPAY
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Mirrors auth.users — rows are created by a DB trigger on signup.
+model Profile {
+  id        String   @id @db.Uuid
+  username  String?
+  telegram  String?
+  role      Role     @default(BUYER)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  orders           Order[]
+  reviews          Review[]
+  verifiedPayments Payment[] @relation("VerifiedPayments")
+
+  @@map("profiles")
+}
+
+model Game {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug      String  @unique
+  name      String
+  iconUrl   String? @map("icon_url")
+  active    Boolean @default(true)
+  sortOrder Int     @default(0) @map("sort_order")
+
+  topupProducts   TopupProduct[]
+  accountListings AccountListing[]
+
+  @@map("games")
+}
+
+model TopupProduct {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId    String  @map("game_id") @db.Uuid
+  name      String
+  price     Int
+  currency  String  @default("MMK")
+  active    Boolean @default(true)
+  sortOrder Int     @default(0) @map("sort_order")
+
+  game       Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([gameId, active])
+  @@map("topup_products")
+}
+
+model AccountListing {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  gameId      String        @map("game_id") @db.Uuid
+  title       String
+  description String?
+  rank        String?
+  level       Int?
+  price       Int
+  currency    String        @default("MMK")
+  status      ListingStatus @default(AVAILABLE)
+  /// Storage paths in the public `screenshots` bucket.
+  images      String[]      @default([])
+  /// Free-form spec table shown on the detail page (heroes, skins, emblems...).
+  specs       Json?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  game       Game        @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([gameId, status])
+  @@map("account_listings")
+}
+
+model Order {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  /// Short human-readable code shown to buyers and admin (e.g. ORD-7F3K2M).
+  code      String      @unique
+  userId    String      @map("user_id") @db.Uuid
+  status    OrderStatus @default(PENDING_PAYMENT)
+  total     Int
+  currency  String      @default("MMK")
+  note      String?
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     Profile     @relation(fields: [userId], references: [id])
+  items    OrderItem[]
+  payments Payment[]
+  review   Review?
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId          String        @map("order_id") @db.Uuid
+  type             OrderItemType
+  topupProductId   String?       @map("topup_product_id") @db.Uuid
+  accountListingId String?       @map("account_listing_id") @db.Uuid
+  /// Product name snapshot so history survives catalog edits.
+  name             String
+  quantity         Int           @default(1)
+  unitPrice        Int           @map("unit_price")
+  /// Buyer's in-game ID + server, required for top-up items.
+  gamePlayerId     String?       @map("game_player_id")
+  gameServerId     String?       @map("game_server_id")
+
+  order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  topupProduct   TopupProduct?   @relation(fields: [topupProductId], references: [id])
+  accountListing AccountListing? @relation(fields: [accountListingId], references: [id])
+  credential     Credential?
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId      String        @map("order_id") @db.Uuid
+  method       PaymentMethod
+  amount       Int
+  /// Storage path in the private `payment-slips` bucket.
+  slipPath     String?       @map("slip_path")
+  status       PaymentStatus @default(PENDING)
+  rejectReason String?       @map("reject_reason")
+  verifiedById String?       @map("verified_by_id") @db.Uuid
+  verifiedAt   DateTime?     @map("verified_at") @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  verifiedBy Profile? @relation("VerifiedPayments", fields: [verifiedById], references: [id])
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Credential {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderItemId String    @unique @map("order_item_id") @db.Uuid
+  username    String
+  password    String
+  extra       Json?
+  deliveredAt DateTime? @map("delivered_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@map("credentials")
+}
+
+model Review {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId   String   @unique @map("order_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  order Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  Profile @relation(fields: [userId], references: [id])
+
+  @@map("reviews")
+}
