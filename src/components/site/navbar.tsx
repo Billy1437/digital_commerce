@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Gamepad2, Send, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserMenu } from "@/components/site/user-menu";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 
 const links = [
   { href: "/#top-up", label: "Top-up" },
@@ -10,11 +12,27 @@ const links = [
 ];
 
 export async function Navbar() {
-  const games = await prisma.game.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: "asc" },
-    select: { slug: true, name: true },
-  });
+  const supabase = await createClient();
+  const [
+    games,
+    {
+      data: { user },
+    },
+  ] = await Promise.all([
+    prisma.game.findMany({
+      where: { active: true },
+      orderBy: { sortOrder: "asc" },
+      select: { slug: true, name: true },
+    }),
+    supabase.auth.getUser(),
+  ]);
+
+  const profile = user
+    ? await prisma.profile.findUnique({
+        where: { id: user.id },
+        select: { username: true },
+      })
+    : null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
@@ -54,10 +72,14 @@ export async function Navbar() {
               <Send data-slot="icon" aria-hidden="true" />
               <span className="hidden sm:inline">Telegram</span>
             </Button>
-          <Button size="sm" render={<Link href="/login" />}>
-            <UserRound data-slot="icon" aria-hidden="true" />
-            Sign in
-          </Button>
+          {user ? (
+            <UserMenu label={profile?.username || user.email || "Account"} />
+          ) : (
+            <Button size="sm" render={<Link href="/login" />}>
+              <UserRound data-slot="icon" aria-hidden="true" />
+              Sign in
+            </Button>
+          )}
         </div>
       </div>
 

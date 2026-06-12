@@ -76,19 +76,28 @@ export default async function GamePage({
         <TabsContent value="topup" className="mt-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {game.topupProducts.map((product) => (
-              <div
+              <Link
                 key={product.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-5 py-4 transition-colors hover:border-white/15"
+                href={`/checkout/topup/${product.id}`}
+                className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-5 py-4 transition-colors hover:border-primary/50"
               >
-                <span className="text-[15px] font-medium">{product.name}</span>
+                <div>
+                  <span className="block text-[15px] font-medium">
+                    {product.name}
+                  </span>
+                  <span className="block text-xs font-bold text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                    Buy now →
+                  </span>
+                </div>
                 <span className="font-bold">
                   {formatPrice(product.price, product.currency)}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
           <p className="mt-6 rounded-xl border border-dashed border-border bg-card/50 p-4 text-sm text-muted-foreground">
-            Checkout opens in Phase 3. For now, order via{" "}
+            Pick a package, enter your game ID, pay by QR and upload the slip.
+            Questions first? Ask on{" "}
             <a
               href="https://t.me/ggmartmm"
               target="_blank"

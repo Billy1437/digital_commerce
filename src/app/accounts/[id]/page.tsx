@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, Send, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SubmitButton } from "@/components/site/submit-button";
+import { createAccountOrder } from "@/app/actions/orders";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
 import { gameArt } from "@/lib/game-art";
@@ -84,9 +86,18 @@ export default async function AccountDetailPage({
           )}
 
           <div className="mt-6 flex flex-col gap-2.5">
-            <Button size="lg" disabled className="w-full">
-              {available ? "Buy now (checkout opens in Phase 3)" : "Sold out"}
-            </Button>
+            {available ? (
+              <form action={createAccountOrder}>
+                <input type="hidden" name="listingId" value={listing.id} />
+                <SubmitButton size="lg" className="w-full" pendingLabel="Reserving…">
+                  Buy now · {formatPrice(listing.price, listing.currency)}
+                </SubmitButton>
+              </form>
+            ) : (
+              <Button size="lg" disabled className="w-full">
+                {listing.status === "RESERVED" ? "Reserved" : "Sold out"}
+              </Button>
+            )}
             <Button
               size="lg"
               variant="outline"
