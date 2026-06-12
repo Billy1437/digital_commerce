@@ -30,7 +30,7 @@ export async function Navbar() {
   const profile = user
     ? await prisma.profile.findUnique({
         where: { id: user.id },
-        select: { username: true },
+        select: { username: true, role: true },
       })
     : null;
 
@@ -73,7 +73,10 @@ export async function Navbar() {
               <span className="hidden sm:inline">Telegram</span>
             </Button>
           {user ? (
-            <UserMenu label={profile?.username || user.email || "Account"} />
+            <UserMenu
+              label={profile?.username || user.email || "Account"}
+              isAdmin={profile?.role === "ADMIN"}
+            />
           ) : (
             <Button size="sm" render={<Link href="/login" />}>
               <UserRound data-slot="icon" aria-hidden="true" />

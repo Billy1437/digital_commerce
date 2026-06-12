@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import { LayoutDashboard, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,7 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut } from "@/app/actions/orders";
 
-export function UserMenu({ label }: { label: string }) {
+export function UserMenu({
+  label,
+  isAdmin = false,
+}: {
+  label: string;
+  isAdmin?: boolean;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -31,6 +37,12 @@ export function UserMenu({ label }: { label: string }) {
           <LayoutDashboard aria-hidden="true" />
           Dashboard
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem render={<Link href="/admin" />}>
+            <ShieldCheck aria-hidden="true" />
+            Admin panel
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           variant="destructive"
           onClick={() => signOut()}
