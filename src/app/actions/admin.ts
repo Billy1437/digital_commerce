@@ -159,6 +159,10 @@ export async function upsertListing(formData: FormData) {
     price: Math.max(0, Math.round(Number(formData.get("price")) || 0)),
     status: String(formData.get("status") ?? "AVAILABLE") as ListingStatus,
     specs: parseSpecs(String(formData.get("specs") ?? "")),
+    images: formData
+      .getAll("images")
+      .map(String)
+      .filter((path) => /^listings\/[\w./-]+$/.test(path)),
   };
   if (!data.gameId || !data.title || data.price <= 0) {
     throw new Error("Game, title and a positive price are required.");

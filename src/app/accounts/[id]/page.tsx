@@ -9,6 +9,7 @@ import { createAccountOrder } from "@/app/actions/orders";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
 import { gameArt } from "@/lib/game-art";
+import { screenshotUrl } from "@/lib/storage";
 
 export const revalidate = 30;
 
@@ -41,31 +42,56 @@ export default async function AccountDetailPage({
       </Link>
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-        {/* Gallery — stock art until screenshots are uploaded */}
-        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-border">
-          <Image
-            src={art.cover}
-            alt={art.alt}
-            fill
-            priority
-            sizes="(max-width: 1024px) 100vw, 60vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
-          {listing.rank && (
-            <span className="absolute left-4 top-4 rounded-md bg-background/80 px-3 py-1.5 text-sm font-bold backdrop-blur-sm">
-              {listing.rank}
+        {/* Gallery: real screenshots when uploaded, stock art otherwise */}
+        <div>
+          <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-border">
+            <Image
+              src={
+                listing.images[0] ? screenshotUrl(listing.images[0]) : art.cover
+              }
+              alt={listing.images[0] ? listing.title : art.alt}
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 60vw"
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+            {listing.rank && (
+              <span className="absolute left-4 top-4 rounded-md bg-background/80 px-3 py-1.5 text-sm font-bold backdrop-blur-sm">
+                {listing.rank}
+              </span>
+            )}
+            <span
+              className={`absolute right-4 top-4 rounded-md px-3 py-1.5 text-xs font-bold ${
+                available
+                  ? "bg-card/80 text-foreground backdrop-blur-sm"
+                  : "bg-primary text-primary-foreground"
+              }`}
+            >
+              {available ? "AVAILABLE" : listing.status}
             </span>
+          </div>
+          {listing.images.length > 1 && (
+            <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+              {listing.images.slice(1).map((path, index) => (
+                <a
+                  key={path}
+                  href={screenshotUrl(path)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border transition-opacity hover:opacity-80"
+                >
+                  <Image
+                    src={screenshotUrl(path)}
+                    alt={`${listing.title} — screenshot ${index + 2}`}
+                    fill
+                    sizes="160px"
+                    className="object-cover"
+                  />
+                </a>
+              ))}
+            </div>
           )}
-          <span
-            className={`absolute right-4 top-4 rounded-md px-3 py-1.5 text-xs font-bold ${
-              available
-                ? "bg-card/80 text-foreground backdrop-blur-sm"
-                : "bg-primary text-primary-foreground"
-            }`}
-          >
-            {available ? "AVAILABLE" : listing.status}
-          </span>
         </div>
 
         <div>

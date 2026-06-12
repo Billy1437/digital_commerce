@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/format";
 import { gameArt } from "@/lib/game-art";
+import { screenshotUrl } from "@/lib/storage";
 
 type ListingCardProps = {
   listing: {
@@ -12,12 +13,16 @@ type ListingCardProps = {
     currency: string;
     status: string;
     specs: unknown;
+    images?: string[];
   };
   game: { slug: string; name: string };
 };
 
 export function ListingCard({ listing, game }: ListingCardProps) {
   const art = gameArt(game.slug);
+  const cover = listing.images?.[0]
+    ? { src: screenshotUrl(listing.images[0]), alt: listing.title }
+    : { src: art.cover, alt: art.alt };
   const specs =
     listing.specs && typeof listing.specs === "object"
       ? Object.entries(listing.specs as Record<string, unknown>).slice(0, 2)
@@ -31,8 +36,8 @@ export function ListingCard({ listing, game }: ListingCardProps) {
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         <Image
-          src={art.cover}
-          alt={art.alt}
+          src={cover.src}
+          alt={cover.alt}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"

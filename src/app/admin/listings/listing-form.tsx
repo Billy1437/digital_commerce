@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/site/submit-button";
 import { upsertListing } from "@/app/actions/admin";
+import { ImageUploader } from "./image-uploader";
 import type { AccountListing, Game } from "@/generated/prisma/client";
 
 const STATUSES = ["AVAILABLE", "RESERVED", "SOLD", "HIDDEN"] as const;
@@ -111,6 +112,11 @@ export function ListingForm({
             defaultValue={listing?.price ?? ""}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Screenshots</Label>
+        <ImageUploader initialImages={listing?.images ?? []} />
       </div>
 
       <div className="space-y-2">
