@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -31,7 +32,9 @@ export function UserMenu({
         }
       />
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="truncate">{label}</DropdownMenuLabel>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/dashboard" />}>
           <LayoutDashboard aria-hidden="true" />
