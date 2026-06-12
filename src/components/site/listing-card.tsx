@@ -1,5 +1,5 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/format";
 import { gameArt } from "@/lib/game-art";
 
@@ -20,58 +20,54 @@ export function ListingCard({ listing, game }: ListingCardProps) {
   const art = gameArt(game.slug);
   const specs =
     listing.specs && typeof listing.specs === "object"
-      ? Object.entries(listing.specs as Record<string, unknown>).slice(0, 3)
+      ? Object.entries(listing.specs as Record<string, unknown>).slice(0, 2)
       : [];
   const available = listing.status === "AVAILABLE";
 
   return (
     <Link
       href={`/accounts/${listing.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_8px_40px_-12px] hover:shadow-primary/25"
+      className="group overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-white/15 hover:shadow-[0_16px_40px_-16px_rgba(0,0,0,0.7)]"
     >
-      <div
-        className={`relative flex h-36 items-center justify-center overflow-hidden bg-gradient-to-br ${art.tile}`}
-      >
-        <span className="select-none font-heading text-4xl font-bold uppercase tracking-widest text-foreground/15 transition-transform duration-300 group-hover:scale-105">
-          {listing.rank ?? game.name}
-        </span>
-        <Badge
-          variant="outline"
-          className={`absolute right-3 top-3 font-heading text-[10px] tracking-wider backdrop-blur-sm ${
-            available
-              ? "border-primary/40 bg-primary/10 text-primary"
-              : "border-border bg-background/60 text-muted-foreground"
-          }`}
-        >
-          {available ? "AVAILABLE" : listing.status}
-        </Badge>
+      <div className="relative aspect-[16/10] overflow-hidden">
+        <Image
+          src={art.cover}
+          alt={art.alt}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+        {listing.rank && (
+          <span className="absolute left-3 top-3 rounded-md bg-background/80 px-2.5 py-1 text-xs font-bold backdrop-blur-sm">
+            {listing.rank}
+          </span>
+        )}
+        {!available && (
+          <span className="absolute right-3 top-3 rounded-md bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
+            {listing.status === "SOLD" ? "SOLD" : listing.status}
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="space-y-2.5 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {game.name}
         </p>
-        <h3 className="line-clamp-2 font-heading text-base font-semibold leading-snug">
+        <h3 className="line-clamp-2 text-[15px] font-semibold leading-snug">
           {listing.title}
         </h3>
         {specs.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {specs.map(([key, value]) => (
-              <span
-                key={key}
-                className="rounded border border-border bg-secondary/60 px-2 py-0.5 text-[11px] text-muted-foreground"
-              >
-                {key}: {String(value)}
-              </span>
-            ))}
-          </div>
+          <p className="line-clamp-1 text-xs text-muted-foreground">
+            {specs.map(([key, value]) => `${key}: ${String(value)}`).join(" · ")}
+          </p>
         )}
-        <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="font-heading text-lg font-bold text-gold text-glow-gold">
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-lg font-bold">
             {formatPrice(listing.price, listing.currency)}
           </span>
-          <span className="text-xs font-semibold text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            View details →
+          <span className="text-xs font-bold text-primary opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            View →
           </span>
         </div>
       </div>

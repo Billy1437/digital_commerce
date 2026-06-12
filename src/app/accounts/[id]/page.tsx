@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Send, ShieldCheck } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { prisma } from "@/lib/prisma";
@@ -29,68 +29,74 @@ export default async function AccountDetailPage({
       : [];
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href={`/games/${listing.game.slug}`}
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-4" aria-hidden="true" />
         {listing.game.name}
       </Link>
 
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
-        {/* Gallery — placeholder until screenshots are uploaded */}
-        <div
-          className={`relative flex min-h-72 items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br ${art.tile}`}
-        >
-          <span className="select-none font-heading text-6xl font-bold uppercase tracking-widest text-foreground/15">
-            {listing.rank ?? listing.game.name}
-          </span>
-          <Badge
-            variant="outline"
-            className={`absolute right-4 top-4 font-heading tracking-wider backdrop-blur-sm ${
+      <div className="mt-5 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+        {/* Gallery — stock art until screenshots are uploaded */}
+        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-border">
+          <Image
+            src={art.cover}
+            alt={art.alt}
+            fill
+            priority
+            sizes="(max-width: 1024px) 100vw, 60vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+          {listing.rank && (
+            <span className="absolute left-4 top-4 rounded-md bg-background/80 px-3 py-1.5 text-sm font-bold backdrop-blur-sm">
+              {listing.rank}
+            </span>
+          )}
+          <span
+            className={`absolute right-4 top-4 rounded-md px-3 py-1.5 text-xs font-bold ${
               available
-                ? "border-primary/40 bg-primary/10 text-primary"
-                : "border-border bg-background/60 text-muted-foreground"
+                ? "bg-card/80 text-foreground backdrop-blur-sm"
+                : "bg-primary text-primary-foreground"
             }`}
           >
             {available ? "AVAILABLE" : listing.status}
-          </Badge>
+          </span>
         </div>
 
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {listing.game.name}
           </p>
-          <h1 className="mt-2 font-heading text-2xl font-bold leading-snug sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-extrabold leading-snug sm:text-3xl">
             {listing.title}
           </h1>
-          <p className="mt-4 font-heading text-3xl font-bold text-gold text-glow-gold">
+          <p className="mt-4 text-3xl font-extrabold">
             {formatPrice(listing.price, listing.currency)}
           </p>
 
           {listing.description && (
-            <p className="mt-4 text-muted-foreground">{listing.description}</p>
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              {listing.description}
+            </p>
           )}
 
           <div className="mt-6 flex flex-col gap-2.5">
-            <Button
-              size="lg"
-              disabled
-              className="w-full font-heading font-bold uppercase tracking-wider"
-            >
+            <Button size="lg" disabled className="w-full">
               {available ? "Buy now (checkout opens in Phase 3)" : "Sold out"}
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="w-full border-primary/30 font-heading font-semibold"
+              className="w-full"
              render={<a href="https://t.me/ggmartmm" target="_blank" rel="noopener noreferrer" />}>
-                <Send data-slot="icon" />
+                <Send data-slot="icon" aria-hidden="true" />
                 Ask about this account
               </Button>
             <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="size-3.5 text-primary" />
+              <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
               Credentials delivered only after admin verifies your payment
             </p>
           </div>
@@ -98,10 +104,10 @@ export default async function AccountDetailPage({
           {specs.length > 0 && (
             <>
               <Separator className="my-6" />
-              <h2 className="font-heading text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
                 Account specs
               </h2>
-              <dl className="mt-3 overflow-hidden rounded-lg border border-border">
+              <dl className="mt-3 overflow-hidden rounded-xl border border-border">
                 {specs.map(([key, value], index) => (
                   <div
                     key={key}
@@ -110,19 +116,9 @@ export default async function AccountDetailPage({
                     }`}
                   >
                     <dt className="capitalize text-muted-foreground">{key}</dt>
-                    <dd className="font-medium">{String(value)}</dd>
+                    <dd className="font-semibold">{String(value)}</dd>
                   </div>
                 ))}
-                {listing.rank && (
-                  <div
-                    className={`flex items-center justify-between gap-4 px-4 py-2.5 text-sm ${
-                      specs.length % 2 === 0 ? "bg-card" : "bg-background/40"
-                    }`}
-                  >
-                    <dt className="text-muted-foreground">Rank</dt>
-                    <dd className="font-medium text-primary">{listing.rank}</dd>
-                  </div>
-                )}
               </dl>
             </>
           )}

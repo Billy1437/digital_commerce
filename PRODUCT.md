@@ -14,7 +14,7 @@ GG Mart is a storefront that moves this gray-market trade onto a credible websit
 
 ## Brand Personality
 
-Premium, minimal, calm. A jade-and-gold jewelry counter, not an arcade. Quiet confidence: the site earns trust by being composed and unhurried where competitors are loud and cluttered. Burmese jade is the cultural anchor for the palette.
+Modern gaming storefront, energetic but clean (user-chosen reference: "Gaming Galaxie" shot, June 2026). Dark charcoal surfaces, one signal-red accent carrying all CTAs and badges, white geometric sans type, image-led hero banner and cover-image product cards. Feels like a real game retailer (Epic/Steam-adjacent), not a chat-shop.
 
 ## Anti-references
 

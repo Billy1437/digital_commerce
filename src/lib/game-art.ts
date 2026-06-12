@@ -1,22 +1,32 @@
-/** Placeholder art for games until real cover images are uploaded. */
-const palettes: Record<string, { tile: string; glow: string }> = {
+/** Cover/hero art per game. Stock gaming photography stands in until the
+ *  admin uploads real key art to the screenshots bucket. */
+const art: Record<string, { cover: string; alt: string }> = {
   "mobile-legends": {
-    tile: "from-sky-400/35 via-blue-600/25 to-transparent",
-    glow: "bg-sky-400/15",
+    cover:
+      "https://images.unsplash.com/photo-1560253023-3ec5d502959f?auto=format&fit=crop&w=1200&q=80",
+    alt: "Glowing game controller on a dark desk",
   },
   "pubg-mobile": {
-    tile: "from-amber-400/35 via-orange-600/25 to-transparent",
-    glow: "bg-amber-400/15",
+    cover:
+      "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1200&q=80",
+    alt: "Console controller lit in red on black",
   },
 };
 
 const fallback = {
-  tile: "from-emerald-400/35 via-teal-600/25 to-transparent",
-  glow: "bg-emerald-400/15",
+  cover:
+    "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+  alt: "Neon-lit arcade machines",
+};
+
+export const heroArt = {
+  cover:
+    "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=2000&q=80",
+  alt: "Esports arena lit in blue and red",
 };
 
 export function gameArt(slug: string) {
-  return palettes[slug] ?? fallback;
+  return art[slug] ?? fallback;
 }
 
 export function gameInitials(name: string) {

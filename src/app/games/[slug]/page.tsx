@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -5,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ListingCard } from "@/components/site/listing-card";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
-import { gameArt, gameInitials } from "@/lib/game-art";
+import { gameArt } from "@/lib/game-art";
 
 export const revalidate = 30;
 
@@ -28,42 +29,46 @@ export default async function GamePage({
   if (!game) notFound();
 
   const art = gameArt(game.slug);
+  const availableCount = game.accountListings.filter(
+    (listing) => listing.status === "AVAILABLE"
+  ).length;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6">
       <Link
         href="/"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-4" aria-hidden="true" />
         All games
       </Link>
 
-      <div className="mt-6 flex items-center gap-5">
-        <div
-          className={`flex size-20 shrink-0 items-center justify-center rounded-lg border border-border bg-gradient-to-br ${art.tile}`}
-        >
-          <span className="font-heading text-2xl font-bold text-foreground/80">
-            {gameInitials(game.name)}
-          </span>
-        </div>
-        <div>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight">{game.name}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {game.topupProducts.length} top-up packages ·{" "}
-            {game.accountListings.filter((l) => l.status === "AVAILABLE").length ===
-            1
-              ? "1 account available"
-              : `${
-                  game.accountListings.filter((l) => l.status === "AVAILABLE")
-                    .length
-                } accounts available`}
-          </p>
+      {/* Banner header */}
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-border">
+        <div className="relative min-h-[200px]">
+          <Image
+            src={art.cover}
+            alt={art.alt}
+            fill
+            priority
+            sizes="(max-width: 1152px) 100vw, 1152px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+          <div className="relative flex min-h-[200px] flex-col justify-center gap-2 p-7 sm:p-10">
+            <h1 className="text-3xl font-extrabold sm:text-4xl">{game.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              {game.topupProducts.length} top-up packages ·{" "}
+              {availableCount === 1
+                ? "1 account available"
+                : `${availableCount} accounts available`}
+            </p>
+          </div>
         </div>
       </div>
 
       <Tabs defaultValue="topup" className="mt-8">
-        <TabsList className="font-heading">
+        <TabsList>
           <TabsTrigger value="topup">Top-up</TabsTrigger>
           <TabsTrigger value="accounts">Accounts</TabsTrigger>
         </TabsList>
@@ -73,22 +78,22 @@ export default async function GamePage({
             {game.topupProducts.map((product) => (
               <div
                 key={product.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3.5 transition-colors hover:border-primary/40"
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-5 py-4 transition-colors hover:border-white/15"
               >
-                <span className="font-medium">{product.name}</span>
-                <span className="font-heading font-bold text-gold">
+                <span className="text-[15px] font-medium">{product.name}</span>
+                <span className="font-bold">
                   {formatPrice(product.price, product.currency)}
                 </span>
               </div>
             ))}
           </div>
-          <p className="mt-6 rounded-lg border border-dashed border-border bg-card/50 p-4 text-sm text-muted-foreground">
-            Checkout opens in Phase 3 — for now, order via{" "}
+          <p className="mt-6 rounded-xl border border-dashed border-border bg-card/50 p-4 text-sm text-muted-foreground">
+            Checkout opens in Phase 3. For now, order via{" "}
             <a
               href="https://t.me/ggmartmm"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-primary hover:underline"
+              className="font-semibold text-primary hover:underline"
             >
               Telegram
             </a>
@@ -98,11 +103,11 @@ export default async function GamePage({
 
         <TabsContent value="accounts" className="mt-6">
           {game.accountListings.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-muted-foreground">
-              No accounts listed for {game.name} yet — check back soon.
+            <p className="rounded-xl border border-dashed border-border bg-card/50 p-8 text-center text-muted-foreground">
+              No accounts listed for {game.name} yet; check back soon.
             </p>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {game.accountListings.map((listing) => (
                 <ListingCard
                   key={listing.id}
