@@ -1,18 +1,21 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
-/** Gate for every admin page and action. Redirects non-admins away. */
+/**
+ * Gate for every admin page and action. Authorization comes from the JWT, not
+ * the database: the user's role is mirrored into auth app_metadata (see
+ * scripts/make-admin.mts) and rides in the signed token, so getClaims() reads
+ * it locally — no auth-server round trip, no profiles query per render.
+ */
 export async function requireAdmin() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/admin");
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims) redirect("/login?next=/admin");
 
-  const profile = await prisma.profile.findUnique({ where: { id: user.id } });
-  if (profile?.role !== "ADMIN") redirect("/");
+  const role = (claims.app_metadata as { role?: string } | undefined)?.role;
+  if (role !== "ADMIN") redirect("/");
 
-  return { user, profile };
+  return { userId: claims.sub as string };
 }

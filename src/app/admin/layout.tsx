@@ -31,6 +31,7 @@ export default async function AdminLayout({
           <Link
             key={tab.href}
             href={tab.href}
+            prefetch={false}
             className="shrink-0 rounded-lg px-3.5 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {tab.label}

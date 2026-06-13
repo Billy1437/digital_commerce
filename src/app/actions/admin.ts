@@ -6,14 +6,8 @@ import { requireAdmin } from "@/lib/admin";
 import { prisma } from "@/lib/prisma";
 import type { ListingStatus } from "@/generated/prisma/enums";
 
-function revalidateAdmin() {
-  revalidatePath("/admin");
-  revalidatePath("/admin/payments");
-  revalidatePath("/admin/fulfillment");
-}
-
 export async function approvePayment(formData: FormData) {
-  const { user } = await requireAdmin();
+  const { userId } = await requireAdmin();
   const paymentId = String(formData.get("paymentId") ?? "");
 
   const payment = await prisma.payment.findUniqueOrThrow({
@@ -24,7 +18,7 @@ export async function approvePayment(formData: FormData) {
   await prisma.$transaction([
     prisma.payment.update({
       where: { id: payment.id },
-      data: { status: "APPROVED", verifiedById: user.id, verifiedAt: new Date() },
+      data: { status: "APPROVED", verifiedById: userId, verifiedAt: new Date() },
     }),
     prisma.order.update({
       where: { id: payment.orderId },
@@ -32,11 +26,13 @@ export async function approvePayment(formData: FormData) {
     }),
   ]);
 
-  revalidateAdmin();
+  // Approved order moves from the queue into fulfillment.
+  revalidatePath("/admin/payments");
+  revalidatePath("/admin/fulfillment");
 }
 
 export async function rejectPayment(formData: FormData) {
-  const { user } = await requireAdmin();
+  const { userId } = await requireAdmin();
   const paymentId = String(formData.get("paymentId") ?? "");
   const reason = String(formData.get("reason") ?? "").trim();
   if (!reason) throw new Error("Give the buyer a reason.");
@@ -52,7 +48,7 @@ export async function rejectPayment(formData: FormData) {
       data: {
         status: "REJECTED",
         rejectReason: reason,
-        verifiedById: user.id,
+        verifiedById: userId,
         verifiedAt: new Date(),
       },
     }),
@@ -62,7 +58,7 @@ export async function rejectPayment(formData: FormData) {
     }),
   ]);
 
-  revalidateAdmin();
+  revalidatePath("/admin/payments");
 }
 
 export async function attachCredential(formData: FormData) {
@@ -106,31 +102,41 @@ export async function attachCredential(formData: FormData) {
       : []),
   ]);
 
-  revalidateAdmin();
+  revalidatePath("/admin/fulfillment");
 }
 
 export async function completeOrder(formData: FormData) {
   await requireAdmin();
   const orderId = String(formData.get("orderId") ?? "");
 
-  const order = await prisma.order.findUniqueOrThrow({
-    where: { id: orderId },
-    include: { items: { include: { credential: true } } },
-  });
-  if (order.status !== "PAID") throw new Error("Order is not paid.");
-  const missingCredential = order.items.some(
-    (item) => item.type === "ACCOUNT" && !item.credential
-  );
-  if (missingCredential) {
+  // Single guarded write: completes only if PAID and every account item already
+  // has credentials. Happy path is one query; we only read to explain failures.
+  const affected = await prisma.$executeRaw`
+    UPDATE "public"."orders" AS o
+    SET "status" = 'COMPLETED'::"public"."OrderStatus", "updated_at" = now()
+    WHERE o."id" = ${orderId}::uuid
+      AND o."status" = 'PAID'::"public"."OrderStatus"
+      AND NOT EXISTS (
+        SELECT 1 FROM "public"."order_items" oi
+        WHERE oi."order_id" = o."id"
+          AND oi."type" = 'ACCOUNT'::"public"."OrderItemType"
+          AND NOT EXISTS (
+            SELECT 1 FROM "public"."credentials" c
+            WHERE c."order_item_id" = oi."id"
+          )
+      )`;
+
+  if (affected === 0) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { status: true },
+    });
+    if (!order) throw new Error("Order not found.");
+    if (order.status !== "PAID") throw new Error("Order is not paid.");
     throw new Error("Attach credentials to all account items first.");
   }
 
-  await prisma.order.update({
-    where: { id: orderId },
-    data: { status: "COMPLETED" },
-  });
-
-  revalidateAdmin();
+  revalidatePath("/admin/fulfillment");
 }
 
 function parseSpecs(raw: string) {

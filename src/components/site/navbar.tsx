@@ -95,6 +95,7 @@ export async function Navbar() {
             <Link
               key={game.slug}
               href={`/games/${game.slug}`}
+              prefetch={false}
               className="shrink-0 rounded-full bg-card px-4 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               {game.name}
