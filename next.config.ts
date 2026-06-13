@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
-      // Supabase storage (listing screenshots) — wired up when admin uploads land
-      { protocol: "https", hostname: "ncfylrblnoctlwemhmex.supabase.co" },
+      // Listing screenshots are served from S3 via our own /api/screenshots
+      // proxy route (local path), so no remote host is needed for them.
     ],
   },
 };

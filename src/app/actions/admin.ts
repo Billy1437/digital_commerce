@@ -162,7 +162,7 @@ export async function upsertListing(formData: FormData) {
     images: formData
       .getAll("images")
       .map(String)
-      .filter((path) => /^listings\/[\w./-]+$/.test(path)),
+      .filter((key) => /^accounts_screenshots\/[\w-]+\.(jpg|jpeg|png|webp)$/.test(key)),
   };
   if (!data.gameId || !data.title || data.price <= 0) {
     throw new Error("Game, title and a positive price are required.");
