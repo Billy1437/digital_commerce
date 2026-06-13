@@ -67,6 +67,11 @@ export async function createAccountOrder(formData: FormData) {
   if (!user) redirect(`/login?next=${encodeURIComponent(`/accounts/${listingId}`)}`);
   if (!listingId) throw new Error("Missing listing.");
 
+  // Self-heal: free any listings held by abandoned unpaid orders before we try
+  // to reserve, so a buyer is never blocked by a stale reservation between the
+  // pg_cron sweeps. Cheap, indexed, and reuses the same logic the cron runs.
+  await prisma.$executeRaw`SELECT public.release_stale_reservations(30)`;
+
   const code = await prisma.$transaction(async (tx) => {
     const reserved = await tx.accountListing.updateMany({
       where: { id: listingId, status: "AVAILABLE" },
