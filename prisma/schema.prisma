@@ -194,6 +194,16 @@ model Credential {
   @@map("credentials")
 }
 
+/// Fixed-window rate limiting; rows written only by the check_rate_limit() SQL
+/// function. RLS-locked so the publishable-key path can't touch it.
+model RateLimit {
+  bucket    String   @id
+  count     Int      @default(0)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(6)
+
+  @@map("rate_limits")
+}
+
 model Review {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   orderId   String   @unique @map("order_id") @db.Uuid

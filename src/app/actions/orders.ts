@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { generateOrderCode } from "@/lib/orders";
 import { createClient } from "@/lib/supabase/server";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import type { PaymentMethod } from "@/generated/prisma/enums";
+
+const ORDER_LIMIT_MSG =
+  "You're placing orders too quickly. Wait a minute and try again.";
 
 const PAYMENT_METHODS: PaymentMethod[] = ["KBZPAY", "WAVE_MONEY", "PROMPTPAY"];
 
@@ -28,6 +32,7 @@ export async function createTopupOrder(formData: FormData) {
   if (!productId || !gamePlayerId) {
     throw new Error("Your in-game ID is required.");
   }
+  await enforceRateLimit(`order:${user.id}`, 10, 600, ORDER_LIMIT_MSG);
 
   const product = await prisma.topupProduct.findFirst({
     where: { id: productId, active: true },
@@ -66,6 +71,7 @@ export async function createAccountOrder(formData: FormData) {
   const user = await getUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/accounts/${listingId}`)}`);
   if (!listingId) throw new Error("Missing listing.");
+  await enforceRateLimit(`order:${user.id}`, 10, 600, ORDER_LIMIT_MSG);
 
   // Self-heal: free any listings held by abandoned unpaid orders before we try
   // to reserve, so a buyer is never blocked by a stale reservation between the
@@ -118,6 +124,12 @@ export async function submitPaymentSlip(formData: FormData) {
 
   const user = await getUser();
   if (!user) redirect("/login");
+  await enforceRateLimit(
+    `slip:${user.id}`,
+    6,
+    600,
+    "Too many slip uploads. Wait a minute and try again."
+  );
   if (!PAYMENT_METHODS.includes(method)) throw new Error("Pick a payment method.");
   if (!slipPath.startsWith(`${user.id}/`)) throw new Error("Slip upload failed.");
 
