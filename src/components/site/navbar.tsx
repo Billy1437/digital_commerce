@@ -3,6 +3,7 @@ import { Gamepad2, Send, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/site/user-menu";
 import { prisma } from "@/lib/prisma";
+import { getNavGames } from "@/lib/games";
 import { createClient } from "@/lib/supabase/server";
 
 const links = [
@@ -13,23 +14,20 @@ const links = [
 
 export async function Navbar() {
   const supabase = await createClient();
-  const [
-    games,
-    {
-      data: { user },
-    },
-  ] = await Promise.all([
-    prisma.game.findMany({
-      where: { active: true },
-      orderBy: { sortOrder: "asc" },
-      select: { slug: true, name: true },
-    }),
-    supabase.auth.getUser(),
+  // getClaims() verifies the JWT locally (asymmetric keys) — no auth-server
+  // round trip per page. getNavGames() is cached, so no DB hit per page either.
+  const [games, { data: claimsData }] = await Promise.all([
+    getNavGames(),
+    supabase.auth.getClaims(),
   ]);
 
-  const profile = user
+  const claims = claimsData?.claims;
+  const userId = claims?.sub;
+  const userEmail = typeof claims?.email === "string" ? claims.email : undefined;
+
+  const profile = userId
     ? await prisma.profile.findUnique({
-        where: { id: user.id },
+        where: { id: userId },
         select: { username: true, role: true },
       })
     : null;
@@ -72,9 +70,9 @@ export async function Navbar() {
               <Send data-slot="icon" aria-hidden="true" />
               <span className="hidden sm:inline">Telegram</span>
             </Button>
-          {user ? (
+          {userId ? (
             <UserMenu
-              label={profile?.username || user.email || "Account"}
+              label={profile?.username || userEmail || "Account"}
               isAdmin={profile?.role === "ADMIN"}
             />
           ) : (
