@@ -87,7 +87,8 @@ export function LoginForm() {
       )}
 
       <TabsContent value="signin" className="mt-6">
-        <form action={handleSignIn} className="space-y-4">
+        <form action={handleSignIn}>
+          <fieldset disabled={pending} className="space-y-4 transition-opacity disabled:opacity-60">
           <div className="space-y-2">
             <Label htmlFor="signin-email">Email</Label>
             <Input
@@ -119,11 +120,13 @@ export function LoginForm() {
               "Sign in"
             )}
           </Button>
+          </fieldset>
         </form>
       </TabsContent>
 
       <TabsContent value="signup" className="mt-6">
-        <form action={handleSignUp} className="space-y-4">
+        <form action={handleSignUp}>
+          <fieldset disabled={pending} className="space-y-4 transition-opacity disabled:opacity-60">
           <div className="space-y-2">
             <Label htmlFor="signup-username">Username</Label>
             <Input
@@ -166,6 +169,7 @@ export function LoginForm() {
               "Create account"
             )}
           </Button>
+          </fieldset>
         </form>
       </TabsContent>
     </Tabs>
