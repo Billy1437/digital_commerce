@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,7 +110,14 @@ export function LoginForm() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Signing in…" : "Sign in"}
+            {pending ? (
+              <>
+                <Loader2 data-slot="icon" className="animate-spin" aria-hidden="true" />
+                Signing in…
+              </>
+            ) : (
+              "Sign in"
+            )}
           </Button>
         </form>
       </TabsContent>
@@ -149,7 +157,14 @@ export function LoginForm() {
             />
           </div>
           <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Creating account…" : "Create account"}
+            {pending ? (
+              <>
+                <Loader2 data-slot="icon" className="animate-spin" aria-hidden="true" />
+                Creating account…
+              </>
+            ) : (
+              "Create account"
+            )}
           </Button>
         </form>
       </TabsContent>
