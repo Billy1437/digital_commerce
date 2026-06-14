@@ -19,7 +19,9 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  async function handleSignIn(formData: FormData) {
+  async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
     const supabase = createClient();
@@ -27,16 +29,19 @@ export function LoginForm() {
       email: String(formData.get("email")),
       password: String(formData.get("password")),
     });
-    setPending(false);
     if (error) {
+      setPending(false);
       setError(error.message);
       return;
     }
+    // keep pending=true through navigation so the form stays locked
     router.push(destination);
     router.refresh();
   }
 
-  async function handleSignUp(formData: FormData) {
+  async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
     setNotice(null);
@@ -49,12 +54,13 @@ export function LoginForm() {
         emailRedirectTo: `${location.origin}/auth/confirm?next=${encodeURIComponent(destination)}`,
       },
     });
-    setPending(false);
     if (error) {
+      setPending(false);
       setError(error.message);
       return;
     }
     if (!data.session) {
+      setPending(false);
       setNotice(
         "Almost there: open the confirmation link we just emailed you, then sign in."
       );
@@ -87,7 +93,7 @@ export function LoginForm() {
       )}
 
       <TabsContent value="signin" className="mt-6">
-        <form action={handleSignIn}>
+        <form onSubmit={handleSignIn}>
           <fieldset disabled={pending} className="space-y-4 transition-opacity disabled:opacity-60">
           <div className="space-y-2">
             <Label htmlFor="signin-email">Email</Label>
@@ -125,7 +131,7 @@ export function LoginForm() {
       </TabsContent>
 
       <TabsContent value="signup" className="mt-6">
-        <form action={handleSignUp}>
+        <form onSubmit={handleSignUp}>
           <fieldset disabled={pending} className="space-y-4 transition-opacity disabled:opacity-60">
           <div className="space-y-2">
             <Label htmlFor="signup-username">Username</Label>
