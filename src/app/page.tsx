@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/site/listing-card";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/format";
-import { gameArt, heroArt } from "@/lib/game-art";
+import { gameArt } from "@/lib/game-art";
 
 export const revalidate = 30;
 
@@ -73,15 +73,15 @@ export default async function HomePage() {
         >
           <div className="relative min-h-[380px] sm:min-h-[420px]">
             <Image
-              src={heroArt.cover}
-              alt={heroArt.alt}
+              src="/hero/mlbb_hero.png"
+              alt="Mobile Legends: Bang Bang"
               fill
               priority
               sizes="(max-width: 1152px) 100vw, 1152px"
-              className="object-cover"
+              className="object-cover opacity-30"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
 
             <div className="relative flex min-h-[380px] flex-col justify-center gap-5 p-7 sm:min-h-[420px] sm:max-w-lg sm:p-12">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">
