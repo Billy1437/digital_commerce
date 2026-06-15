@@ -22,7 +22,7 @@ export function ListingCard({ listing, game }: ListingCardProps) {
   const art = gameArt(game.slug);
   const cover = listing.images?.[0]
     ? { src: screenshotUrl(listing.images[0]), alt: listing.title }
-    : { src: art.cover, alt: art.alt };
+    : { src: art.image, alt: art.alt };
   const specs =
     listing.specs && typeof listing.specs === "object"
       ? Object.entries(listing.specs as Record<string, unknown>).slice(0, 2)

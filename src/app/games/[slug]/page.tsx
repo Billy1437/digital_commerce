@@ -54,7 +54,7 @@ export default async function GamePage({
       <div className="relative mt-5 overflow-hidden rounded-2xl border border-border">
         <div className="relative min-h-[200px]">
           <Image
-            src={bannerArt?.src ?? art.cover}
+            src={bannerArt?.src ?? art.image}
             alt={bannerArt ? game.name : art.alt}
             fill
             priority

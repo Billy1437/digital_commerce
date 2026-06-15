@@ -121,7 +121,7 @@ export default async function HomePage() {
                     className="group relative h-16 w-28 overflow-hidden rounded-lg border border-white/15 transition-transform duration-200 hover:scale-105"
                   >
                     <Image
-                      src={art.cover}
+                      src={art.image}
                       alt={art.alt}
                       fill
                       sizes="112px"
@@ -172,7 +172,7 @@ export default async function HomePage() {
               >
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <Image
-                    src={art.cover}
+                    src={art.image}
                     alt={art.alt}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"

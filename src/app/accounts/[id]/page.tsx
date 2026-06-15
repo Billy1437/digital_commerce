@@ -47,7 +47,7 @@ export default async function AccountDetailPage({
           <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-border">
             <Image
               src={
-                listing.images[0] ? screenshotUrl(listing.images[0]) : art.cover
+                listing.images[0] ? screenshotUrl(listing.images[0]) : art.image
               }
               alt={listing.images[0] ? listing.title : art.alt}
               fill

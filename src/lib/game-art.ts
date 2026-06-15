@@ -26,7 +26,25 @@ export const heroArt = {
 };
 
 export function gameArt(slug: string) {
-  return art[slug] ?? fallback;
+  switch (slug) {
+    case "mobile-legends":
+      return {
+        alt: "Mobile Legends",
+        image: "/hero/mlbb_hero.png",
+      };
+
+    case "pubg-mobile":
+      return {
+        alt: "PUBG Mobile",
+        image: "/hero/pubg_page.jpeg",
+      };
+
+    default:
+      return {
+        alt: "Game",
+        image: "/hero/default.png",
+      };
+  }
 }
 
 export function gameInitials(name: string) {

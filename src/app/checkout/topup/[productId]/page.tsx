@@ -51,7 +51,7 @@ export default async function TopupCheckoutPage({
       {/* Order summary */}
       <div className="mt-6 flex items-center gap-4 rounded-xl border border-border bg-card p-4">
         <div className="relative size-16 shrink-0 overflow-hidden rounded-lg">
-          <Image src={art.cover} alt={art.alt} fill sizes="64px" className="object-cover" />
+          <Image src={art.image} alt={art.alt} fill sizes="64px" className="object-cover" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
