@@ -29,6 +29,13 @@ export default async function GamePage({
   if (!game) notFound();
 
   const art = gameArt(game.slug);
+  // Real key art per game (local), falls back to stock art for others.
+  const bannerArt = (
+    {
+      "mobile-legends": { src: "/hero/mlbb_hero.png" },
+      "pubg-mobile": { src: "/hero/pubg_page.jpeg" },
+    } as Record<string, { src: string }>
+  )[game.slug];
   const availableCount = game.accountListings.filter(
     (listing) => listing.status === "AVAILABLE"
   ).length;
@@ -47,14 +54,14 @@ export default async function GamePage({
       <div className="relative mt-5 overflow-hidden rounded-2xl border border-border">
         <div className="relative min-h-[200px]">
           <Image
-            src={art.cover}
-            alt={art.alt}
+            src={bannerArt?.src ?? art.cover}
+            alt={bannerArt ? game.name : art.alt}
             fill
             priority
             sizes="(max-width: 1152px) 100vw, 1152px"
-            className="object-cover"
+            className="object-cover object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/75 to-background/30" />
           <div className="relative flex min-h-[200px] flex-col justify-center gap-2 p-7 sm:p-10">
             <h1 className="text-3xl font-extrabold sm:text-4xl">{game.name}</h1>
             <p className="text-sm text-muted-foreground">
